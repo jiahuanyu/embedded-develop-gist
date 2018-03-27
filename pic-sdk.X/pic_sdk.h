@@ -45,6 +45,23 @@ extern "C" {
     void pic_sdk_watch_dog_on(void);
     void pic_sdk_watch_dog_off(void);
 
+    /* Timer 设置 */
+    enum PIC_SDK_TIMER6_PERIOD {
+        PIC_SDK_TIMER6_PERIOD_ms_65_536 = 0b01111111
+    };
+    typedef enum PIC_SDK_TIMER6_PERIOD PIC_SDK_TIMER6_PERIOD_e;
+
+    void pic_sdk_timer6_config(PIC_SDK_TIMER6_PERIOD_e p_period);
+
+    /*ADC*/
+    void pic_sdk_adc_config(uint8_t p_index);
+    
+    /*IIC*/
+    void pic_sdk_i2c_config(void);
+    void pic_sdk_i2c_write_1(uint8_t p_address, uint8_t p_data);
+    void pic_sdk_i2c_write_2(uint8_t p_address, uint8_t p_data, uint8_t p_data_2);
+    void pic_sdk_i2c_write_3(uint8_t p_address, uint8_t p_data, uint8_t p_data_2, uint8_t p_data_3);
+
     /*串口配置*/
     void pic_sdk_uart_0_config(uint32_t p_fosc, uint32_t p_baudrate, uint8_t p_option);
 

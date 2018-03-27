@@ -1,5 +1,3 @@
-#include <pic16f1933.h>
-
 #include "pic_sdk.h"
 
 /*系统初始化配置*/
@@ -61,6 +59,120 @@ void pic_sdk_inner_osc_config(void) {
     }
 }
 
+/* Timer 配置 */
+void pic_sdk_timer6_config(PIC_SDK_TIMER6_PERIOD_e p_period) {
+    GIE = 1;
+    PEIE = 1;
+    TMR6IF = 0;
+    TMR6IE = 1;
+    T6CON = p_period;
+}
+
+/*ADC*/
+void pic_sdk_adc_config(uint8_t p_index) {
+    switch (p_index) {
+        case 1:
+            ANSELAbits.ANSA1 = 1;
+            ADCON0bits.CHS = 0b00001;
+            break;
+        default:
+            break;
+    }
+    ADCON0bits.GO = 0;
+    ADCON0bits.ADON = 1;
+
+    ADCON1bits.ADFM = 1;
+    ADCON1bits.ADCS = 0b010;
+    ADCON1bits.ADNREF = 0;
+    ADCON1bits.ADPREF = 0b00;
+}
+
+/*IIC*/
+void pic_sdk_i2c_config(void) {
+    TRISC3 = 1;
+    TRISC4 = 1;
+    SSPSTATbits.SMP = 1;
+    SSPADD = 0x09; // 设置时钟频率
+    SSPIF = 0;
+    SSPCON1 = 0x38; // 初始化寄存器 主模式
+}
+
+void pic_sdk_i2c_write_1(uint8_t p_address, uint8_t p_data) {
+    SEN = 1; //产生IIC启动信号
+    while (!SSPIF); //等待启动结束
+    SSPIF = 0; //SSPIF标志清0
+
+    SSPBUF = p_address; //发送地址字节
+    while (!SSPIF); //等待发送结束
+    SSPIF = 0; //SSPIF标志清0     
+    while (ACKSTAT);
+
+    SSPBUF = p_data; //发送数据字节
+    while (!SSPIF); //等待发送结束
+    SSPIF = 0; //SSPIF标志清0
+    while (ACKSTAT);
+
+    PEN = 1; //产生IIC停止信号
+    while (!SSPIF);
+    SSPIF = 0; //SSPIF标志清0 
+}
+
+void pic_sdk_i2c_write_2(uint8_t p_address, uint8_t p_data, uint8_t p_data_2) {
+    SEN = 1; //产生IIC启动信号
+    while (!SSPIF); //等待启动结束
+    SSPIF = 0; //SSPIF标志清0
+
+    SSPBUF = p_address; //发送地址字节
+    while (!SSPIF); //等待发送结束
+    SSPIF = 0; //SSPIF标志清0     
+    while (ACKSTAT);
+
+    SSPBUF = p_data; //发送数据字节
+    while (!SSPIF); //等待发送结束
+    SSPIF = 0; //SSPIF标志清0
+    while (ACKSTAT);
+
+    SSPBUF = p_data_2; //发送数据字节
+    while (!SSPIF); //等待发送结束
+    SSPIF = 0; //SSPIF标志清0
+    while (ACKSTAT);
+
+    PEN = 1; //产生IIC停止信号
+    while (!SSPIF);
+    SSPIF = 0; //SSPIF标志清0 
+}
+
+void pic_sdk_i2c_write_3(uint8_t p_address, uint8_t p_data, uint8_t p_data_2, uint8_t p_data_3) {
+    SEN = 1; //产生IIC启动信号
+    while (!SSPIF); //等待启动结束
+    SSPIF = 0; //SSPIF标志清0
+
+    SSPBUF = p_address; //发送地址字节
+    while (!SSPIF); //等待发送结束
+    SSPIF = 0; //SSPIF标志清0     
+    while (ACKSTAT);
+
+    SSPBUF = p_data; //发送数据字节
+    while (!SSPIF); //等待发送结束
+    SSPIF = 0; //SSPIF标志清0
+    while (ACKSTAT);
+
+    SSPBUF = p_data_2; //发送数据字节
+    while (!SSPIF); //等待发送结束
+    SSPIF = 0; //SSPIF标志清0
+    while (ACKSTAT);
+
+    SSPBUF = p_data_3; //发送数据字节
+    while (!SSPIF); //等待发送结束
+    SSPIF = 0; //SSPIF标志清0
+    while (ACKSTAT);
+
+    PEN = 1; //产生IIC停止信号
+    while (!SSPIF);
+    SSPIF = 0; //SSPIF标志清0     
+}
+
+/**/
 void pic_sdk_uart_0_config(uint32_t p_fosc, uint32_t p_baudrate, uint8_t p_option) {
     // RX设置为输入状态, TX设置为输出状态
     TRISC7 = 1;
