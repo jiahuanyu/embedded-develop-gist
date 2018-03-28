@@ -5,9 +5,6 @@
 extern "C" {
 #endif
 
-    // 振荡器
-#define _XTAL_FREQ 16000000
-
     // FCMEN = 故障保护时钟监视器使能位
     // 1 = 使能故障保护时钟监视器
     // 0 = 禁止故障保护时钟监视器
@@ -62,7 +59,10 @@ extern "C" {
 #define PIC_CONFIG_WDTE 01
 
     // FOSC<2:0> 振荡器选择位
+#if defined(OSC_INNER)
 #define PIC_CONFIG_FOSC 100
+#else
+#endif
 
     // LVP 低压使能变成位
     // 1 = 使能低压编程   
@@ -90,12 +90,21 @@ extern "C" {
     // 0 = 禁止 4xPLL
 #define PIC_CONFIG_PLLEN 0
 
+#if defined(_16F1933) || defined(_16F1936) || defined(_16F1938)
     // VCAPEN<1:0> 稳压器电容使能位
     // 00 = 在 RA0 引脚上使能 VCAP 功能
     // 01 = 在 RA5 引脚上使能 VCAP 功能
     // 10 = 在 RA6 引脚上使能 VCAP 功能
     // 11 = VCAP 引脚上无电容
 #define PIC_CONFIG_VCAPEN 11
+
+#elif defined(_16F1947)
+    // VCAPEN: 稳压器电容使能位
+    // 0 = VCAP 在 RF0 引脚上使能 VCAP 功能
+    // 1 = VCAP 引脚上无电容
+#define PIC_CONFIG_VCAPEN 0
+
+#endif
 
     // WRT<1:0> 闪存自写保护位
 #define PIC_CONFIG_WRT 00
