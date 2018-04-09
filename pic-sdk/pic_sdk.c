@@ -21,10 +21,8 @@ void pic_sdk_system_ini_config(void) {
     // 中断设置
     INTE = 0; // 禁止外部中断
     IOCIE = 0; // 禁止电平变化中断	
-#endif
 
-
-#if defined(_16F1947)
+#elif defined(_16F1947)
     // PORT_A
     PORTA = 0x00;
     TRISA = 0xFF;
@@ -146,7 +144,7 @@ void pic_sdk_i2c_config(uint8_t p_index, PIC_SDK_I2C_CONFIG_t p_config) {
         SSPCONbits.SSPM1 = 0;
         SSPCONbits.SSPM2 = 0;
         SSPCONbits.SSPM3 = 0; // FOSC / (4 * (SSPADD+1)) 
-        SSPADD = 0x39; // 设置时钟频率 100KH
+        SSPADD = _XTAL_FREQ / 400000 - 1; // 设置时钟频率 100KH
         SSPIF = 0;
         SSPCONbits.SSPEN = 1;
     }
@@ -158,11 +156,11 @@ void pic_sdk_i2c_config(uint8_t p_index, PIC_SDK_I2C_CONFIG_t p_config) {
             TRISD6 = 1;
             if (p_config.master_slave_mode == PIC_SDK_I2C_MODE_MASTER) {
                 SSP2STATbits.SMP = 1;
-                SSP2CON1bits.SSPM0 = 1;
+                SSP2CON1bits.SSPM0 = 0;
                 SSP2CON1bits.SSPM1 = 0;
                 SSP2CON1bits.SSPM2 = 0;
-                SSP2CON1bits.SSPM3 = 0; // FOSC / (4 * (SSPADD+1)) 
-                SSP2ADD = 0x39; // 设置时钟频率 100KH
+                SSP2CON1bits.SSPM3 = 1; // FOSC / (4 * (SSPADD+1)) 
+                SSP2ADD = _XTAL_FREQ / 400000 - 1; // 设置时钟频率 100KH
                 SSP2IF = 0;
             }
             SSP2CON1bits.SSPEN = 1; // 使能i2c
@@ -187,11 +185,12 @@ void pic_sdk_i2c_write(uint8_t p_index, uint8_t p_write_address, uint8_t* p_data
     SSPIF = 0; //SSPIF标志清0     
     while (ACKSTAT);
 
-    SSPBUF = p_data; //发送数据字节
-    while (!SSPIF); //等待发送结束
-    SSPIF = 0; //SSPIF标志清0
-    while (ACKSTAT);
-
+    for (uint8_t i = 0; i < p_data_size; i++) {
+        SSPBUF = p_data; //发送数据字节
+        while (!SSPIF); //等待发送结束
+        SSPIF = 0; //SSPIF标志清0
+        while (ACKSTAT);
+    }
     PEN = 1; //产生IIC停止信号
     while (!SSPIF);
     SSPIF = 0; //SSPIF标志清0 
@@ -233,8 +232,8 @@ uint8_t pic_sdk_i2c_read(uint8_t p_index, uint8_t p_read_address) {
     switch (p_index) {
         case 2:
             SSP2CON2bits.SEN = 1; //产生IIC启动信号
-            while (!SSPIF); //等待启动结束
-            SSPIF = 0; //SSPIF标志清0
+            while (!SSP2IF); //等待启动结束
+            SSP2IF = 0; //SSPIF标志清0
 
             SSP2BUF = p_read_address; //发送数据字节
             while (!SSP2IF); //等待发送结束
@@ -259,8 +258,38 @@ uint8_t pic_sdk_i2c_read(uint8_t p_index, uint8_t p_read_address) {
 }
 
 /* SPI */
+//#if defined(_16F1933) || defined(_16F1936) || defined(_16F1938)
+//PIC_SDK_SPI_CONFIG_t pic_sdk_spi_configs[1];
+//#elif defined(_16F1947)
+//PIC_SDK_SPI_CONFIG_t pic_sdk_spi_configs[2];
+//#endif
+
 void pic_sdk_spi_config(uint8_t p_index, PIC_SDK_SPI_CONFIG_t p_config) {
-#if defined(_16F1947)
+#if defined(_16F1933) || defined(_16F1936) || defined(_16F1938)
+    if (p_config.master_slave_mode == PIC_SDK_SPI_MODE_MASTER) {
+
+    } else if (p_config.master_slave_mode == PIC_SDK_SPI_MODE_SLAVE) {
+        // 从模式
+        TRISC5 = 0; // SDO
+        TRISC4 = 1; // SDI
+        TRISC3 = 1; // SCK
+        TRISA5 = 1; // SS
+
+        SSPSTATbits.SMP = 0;
+        SSPSTATbits.CKE = 1;
+        SSPCON1bits.CKP = 1;
+        SSPCON1bits.SSPM0 = 0;
+        SSPCON1bits.SSPM1 = 0;
+        SSPCON1bits.SSPM2 = 1;
+        SSPCON1bits.SSPM3 = 0;
+
+        SSPCON3bits.BOEN = 1;
+
+        SSPCON1bits.SSPEN = 1;
+
+        SSPBUF = 0x00;
+    }
+#elif defined(_16F1947)
     switch (p_index) {
         case 1:
             TRISC5 = 0; // SDO
@@ -270,22 +299,14 @@ void pic_sdk_spi_config(uint8_t p_index, PIC_SDK_SPI_CONFIG_t p_config) {
 
                 SSP1STATbits.SMP = 1;
                 SSP1CON1bits.SSPM0 = 0;
-                SSP1CON1bits.SSPM1 = 0;
+                SSP1CON1bits.SSPM1 = 1;
                 SSP1CON1bits.SSPM2 = 0;
-                SSP1CON1bits.SSPM3 = 0;
+                SSP1CON1bits.SSPM3 = 1;
             }
 
             SSP1STATbits.CKE = 1;
             SSP1CON1bits.CKP = 1;
-
-            SSP1IF = 0;
-
-            if (p_config.interrupt_open) {
-                GIE = 1;
-                PEIE = 1;
-                PIE1bits.SSP1IE = 1;
-            }
-
+            SSP1ADD = _XTAL_FREQ / 400000 - 1; // 100K
 
             SSP1CON1bits.SSPEN = 1;
             break;
@@ -296,8 +317,9 @@ void pic_sdk_spi_config(uint8_t p_index, PIC_SDK_SPI_CONFIG_t p_config) {
 }
 
 void pic_sdk_spi_write(uint8_t p_index, uint8_t p_data) {
-
-#if defined(_16F1947)
+#if defined(_16F1933) || defined(_16F1936) || defined(_16F1938)
+        SSPBUF = p_data;
+#elif defined(_16F1947)
     switch (p_index) {
         case 1:
             SSP1BUF = p_data;
@@ -313,7 +335,9 @@ void pic_sdk_spi_write(uint8_t p_index, uint8_t p_data) {
 
 uint8_t pic_sdk_spi_read(uint8_t p_index) {
     uint8_t content;
-#if defined(_16F1947)
+#if defined(_16F1933) || defined(_16F1936) || defined(_16F1938)
+    content = SSPBUF;
+#elif defined(_16F1947)
     switch (p_index) {
         case 1:
             content = SSP1BUF;

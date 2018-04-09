@@ -1,5 +1,5 @@
-#ifndef PIC_CONFIG_H
-#define	PIC_CONFIG_H
+#ifndef PIC_SDK_CONFIG_H
+#define	PIC_SDK_CONFIG_H
 
 #ifdef	__cplusplus
 extern "C" {
@@ -96,7 +96,7 @@ extern "C" {
     // 01 = 在 RA5 引脚上使能 VCAP 功能
     // 10 = 在 RA6 引脚上使能 VCAP 功能
     // 11 = VCAP 引脚上无电容
-#define PIC_CONFIG_VCAPEN 11
+#define PIC_CONFIG_VCAPEN 00
 
 #elif defined(_16F1947)
     // VCAPEN: 稳压器电容使能位

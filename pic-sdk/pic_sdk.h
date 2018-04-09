@@ -9,6 +9,9 @@ extern "C" {
 #include <pic.h>
 #include <stdint.h>
 
+#define true 1 
+#define false 0 
+
     typedef uint8_t boolean;
 
     // 断言设置
@@ -70,7 +73,7 @@ extern "C" {
     /* Timer */
     enum PIC_SDK_TIMER6_PERIOD {
         PIC_SDK_TIMER6_PERIOD_ms_65_536 = 0b01111111,
-        PIC_SDK_TIMER6_PERIOD_ms_32_768 = 0b00111011
+        PIC_SDK_TIMER6_PERIOD_ms_32_768 = 0b00111111
     };
     typedef enum PIC_SDK_TIMER6_PERIOD PIC_SDK_TIMER6_PERIOD_e;
 
@@ -92,8 +95,8 @@ extern "C" {
     typedef enum PIC_SDK_I2C_MODE PIC_SDK_I2C_Mode_e;
 
     struct PIC_SDK_I2C_CONFIG {
-        PIC_SDK_I2C_Mode_e master_slave_mode;
-        boolean interrupt_open;
+        PIC_SDK_I2C_Mode_e master_slave_mode; // 主从模式
+        boolean interrupt_open; // 是否开启中断
     };
     typedef struct PIC_SDK_I2C_CONFIG PIC_SDK_I2C_CONFIG_t;
 
