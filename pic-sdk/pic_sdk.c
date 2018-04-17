@@ -140,10 +140,10 @@ void pic_sdk_i2c_config(uint8_t p_index, PIC_SDK_I2C_CONFIG_t p_config) {
     TRISC4 = 1;
     if (p_config.master_slave_mode == PIC_SDK_I2C_MODE_MASTER) {
         SSPSTATbits.SMP = 1;
-        SSPCONbits.SSPM0 = 1;
+        SSPCONbits.SSPM0 = 0;
         SSPCONbits.SSPM1 = 0;
         SSPCONbits.SSPM2 = 0;
-        SSPCONbits.SSPM3 = 0; // FOSC / (4 * (SSPADD+1)) 
+        SSPCONbits.SSPM3 = 1; // FOSC / (4 * (SSPADD+1)) 
         SSPADD = _XTAL_FREQ / 400000 - 1; // 设置时钟频率 100KH
         SSPIF = 0;
         SSPCONbits.SSPEN = 1;
@@ -175,7 +175,6 @@ void pic_sdk_i2c_config(uint8_t p_index, PIC_SDK_I2C_CONFIG_t p_config) {
 
 void pic_sdk_i2c_write(uint8_t p_index, uint8_t p_write_address, uint8_t* p_data, uint8_t p_data_size) {
 #if defined(_16F1933) || defined(_16F1936) || defined(_16F1938)
-
     SEN = 1; //产生IIC启动信号
     while (!SSPIF); //等待启动结束
     SSPIF = 0; //SSPIF标志清0
@@ -186,10 +185,11 @@ void pic_sdk_i2c_write(uint8_t p_index, uint8_t p_write_address, uint8_t* p_data
     while (ACKSTAT);
 
     for (uint8_t i = 0; i < p_data_size; i++) {
-        SSPBUF = p_data; //发送数据字节
+        SSPBUF = *p_data; //发送数据字节
         while (!SSPIF); //等待发送结束
         SSPIF = 0; //SSPIF标志清0
         while (ACKSTAT);
+        p_data++;
     }
     PEN = 1; //产生IIC停止信号
     while (!SSPIF);
@@ -318,7 +318,7 @@ void pic_sdk_spi_config(uint8_t p_index, PIC_SDK_SPI_CONFIG_t p_config) {
 
 void pic_sdk_spi_write(uint8_t p_index, uint8_t p_data) {
 #if defined(_16F1933) || defined(_16F1936) || defined(_16F1938)
-        SSPBUF = p_data;
+    SSPBUF = p_data;
 #elif defined(_16F1947)
     switch (p_index) {
         case 1:
